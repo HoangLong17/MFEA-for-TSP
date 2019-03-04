@@ -1,0 +1,22 @@
+UnifiedMultitaskingEnvironment:
+	a list of tasks;
+	current population;
+	offspring population;
+	intermediate population;
+	optimum individual;
+	a list of fitness values;
+Task:
+	objective function;
+	best individual;
+	best fitness value;
+Population: 
+	a list of individuals;
+Individual:
+	its chromosome;
+	a list of factorial costs;
+	a list of factorial ranks;
+	scalar fitness;
+	a list of skill factors;
+	compareTo;
+Chromosome:
+	inherited data;
