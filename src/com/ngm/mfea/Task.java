@@ -8,6 +8,7 @@ public class Task {
     private Function objectiveFunction;
     private Individual bestIndividual;
     private Double bestFitnessValue;
+    private int dimension;
 
     public Task(Function objectiveFunction) {
         taskCount++;
@@ -47,5 +48,13 @@ public class Task {
 
     public void setBestFitnessValue(Double bestFitnessValue) {
         this.bestFitnessValue = bestFitnessValue;
+    }
+
+    public int getDimension() {
+        return dimension;
+    }
+
+    public void setDimension(int dimension) {
+        this.dimension = dimension;
     }
 }

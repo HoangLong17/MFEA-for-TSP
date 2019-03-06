@@ -3,6 +3,7 @@ package com.ngm.mfea;
 import java.util.ArrayList;
 
 public class UnifiedMultitaskingEnvironment {
+    private static int unifiedTaskDimension = 0;
     private ArrayList<Task> taskList;
     private Population currentPopulation,
             offspringPopulation,
@@ -83,5 +84,19 @@ public class UnifiedMultitaskingEnvironment {
     public void setOptimumFitnessValues(int index, Double value) {
         if(index > optimumFitnessValues.size() - 1) optimumFitnessValues.add(value);
         else optimumFitnessValues.set(index, value);
+    }
+    public int getUnifiedTaskDimension() {
+        return unifiedTaskDimension;
+    }
+
+    public void updateUnifiedTaskDimension() {
+        for (Task task : taskList) {
+            if(task.getDimension() > unifiedTaskDimension)
+                unifiedTaskDimension = task.getDimension();
+        }
+    }
+
+    public void MFEAlgorithm() {
+
     }
 }

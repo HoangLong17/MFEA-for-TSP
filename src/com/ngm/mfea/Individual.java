@@ -95,4 +95,12 @@ public class Individual implements Comparable<Individual> {
         return Double.compare(this.getFactorialCosts().get(taskId),
                 that.getFactorialCosts().get(taskId));
     }
+
+    public void encoding() {
+
+    }
+
+    public void decoding(Task task) {
+
+    }
 }
