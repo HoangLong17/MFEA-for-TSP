@@ -1,6 +1,8 @@
 package com.ngm.utils;
 
-import com.ngm.tsp.CityMap;
+import com.ngm.mfea.Task;
+import com.ngm.tsp.EuclidDistance;
+import com.ngm.tsp.PseudoEuclidDistance;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,7 +11,7 @@ import java.util.StringTokenizer;
 
 public class TSPFile {
     //Read a TSP file.
-    public static void readFile(String filename, CityMap cp) {
+    public static void readFile(String filename, Task cp) {
         File file = new File(filename);
         Scanner sc;
         StringTokenizer st;
@@ -22,18 +24,26 @@ public class TSPFile {
             st = new StringTokenizer(sc.nextLine());
             while(st.hasMoreTokens()) {
                 st.nextToken(": ");
-                cp.setCityCount(Integer.parseInt(st.nextToken()));
+                cp.setDimension(Integer.parseInt(st.nextToken()));
             }
             //Get problem's fitness value type.
             st = new StringTokenizer(sc.nextLine());
             while(st.hasMoreTokens()) {
                 st.nextToken(": ");
                 cp.setDistanceType(st.nextToken());
+
+                if (cp.getDistanceType().equals(ConstantString.EUC_2D)) {
+                    cp.setObjectiveFunction(new EuclidDistance());
+                    //Euclid distance.
+                } else if (cp.getDistanceType().equals(ConstantString.ATT)) {
+                    cp.setObjectiveFunction(new PseudoEuclidDistance());
+                    //Pseudo Euclid distance.
+                }
             }
             //Type of weight.
             if(sc.nextLine().equals(ConstantString.NODE_COORD_SECTION)) {
                 //Get point coordinate.
-                for (int i = 0; i < cp.getCityCount(); i++) {
+                for (int i = 0; i < cp.getDimension(); i++) {
                     sc.nextInt();
                     cp.setaX(i, sc.nextDouble());
                     cp.setaY(i, sc.nextDouble());

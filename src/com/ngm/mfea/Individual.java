@@ -4,17 +4,17 @@ package com.ngm.mfea;
 import java.util.ArrayList;
 
 public class Individual implements Comparable<Individual> {
-    private ArrayList<Integer> chromosome; //Chromosome's data.
-    private ArrayList<Double> factorialCosts;
-    private ArrayList<Integer> factorialRanks;
-    private ArrayList<Double> skillFactors;
-    private Double scalarFitness;
+    protected ArrayList<Integer> chromosome; //Chromosome's data.
+    protected ArrayList<Double> factorialCosts;
+    protected ArrayList<Integer> factorialRanks;
+    protected int skillFactor;
+    protected Double scalarFitness;
 
     public Individual() {
         chromosome = new ArrayList<>();
         factorialCosts = new ArrayList<>();
         factorialRanks = new ArrayList<>();
-        skillFactors = new ArrayList<>();
+        skillFactor = 0;
         scalarFitness = 0.0;
     }
 
@@ -24,6 +24,15 @@ public class Individual implements Comparable<Individual> {
 
     public void setChromosome(ArrayList<Integer> chromosome) {
         this.chromosome = chromosome;
+    }
+
+    public int getChromosome(int index) {
+        return chromosome.get(index);
+    }
+
+    public void setChromosome(int index, int value) {
+        if (index > chromosome.size() - 1) chromosome.add(value);
+        else chromosome.set(index, value);
     }
 
     public ArrayList<Double> getFactorialCosts() {
@@ -60,21 +69,12 @@ public class Individual implements Comparable<Individual> {
         else factorialRanks.set(index, value);
     }
 
-    public ArrayList<Double> getSkillFactors() {
-        return skillFactors;
+    public int getSkillFactor() {
+        return skillFactor;
     }
 
-    public void setSkillFactors(ArrayList<Double> skillFactors) {
-        this.skillFactors = skillFactors;
-    }
-
-    public Double getSkillFactors(int index) {
-        return skillFactors.get(index);
-    }
-
-    public void setSkillFactors(int index, Double value) {
-        if(index > skillFactors.size() - 1) skillFactors.add(value);
-        else skillFactors.set(index, value);
+    public void setSkillFactor(int skillFactor) {
+        this.skillFactor = skillFactor;
     }
 
     public Double getScalarFitness() {
@@ -91,16 +91,29 @@ public class Individual implements Comparable<Individual> {
         //this < that ? -1 : this > that ? 1 : 0.
     }
 
-    public int compareTo(int taskId, Individual that) {
+    public int compareTo(Individual that, int taskId) {
         return Double.compare(this.getFactorialCosts().get(taskId),
                 that.getFactorialCosts().get(taskId));
     }
 
-    public void encoding() {
-
+    public ArrayList<Integer> encoding() {
+        ArrayList<Integer> returnChromosome = new ArrayList<>(chromosome);
+        int dimension = UnifiedMultitaskingEnvironment.getUnifiedTaskDimension();
+        while (returnChromosome.size() != dimension) {
+            returnChromosome.add(0);
+        }
+        return returnChromosome;
     }
 
-    public void decoding(Task task) {
-
+    public ArrayList<Integer> decoding(Task task) {
+        ArrayList<Integer> returnChromosome = new ArrayList<>(chromosome);
+        int taskDimension = task.getDimension();
+        int size = returnChromosome.size();
+        int i = 0;
+        while (returnChromosome.size() > taskDimension) {
+            if (returnChromosome.get(i) == 0) returnChromosome.remove(i);
+            i++;
+        }
+        return returnChromosome;
     }
 }
