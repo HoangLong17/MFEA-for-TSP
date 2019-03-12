@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Random;
 
 import static com.ngm.mfea.Population.*;
-import static com.ngm.utils.Sorting.mergeSort;
+import static com.ngm.utils.Sorting.*;
 
 public class UnifiedMultitaskingEnvironment {
     private static int unifiedTaskDimension = 0;
@@ -16,6 +16,7 @@ public class UnifiedMultitaskingEnvironment {
             intermediatePopulation;
     private Individual optimumIndividual;
     private ArrayList<Double> optimumFitnessValues;
+    private Double optimumScalarFitness;
 
     public UnifiedMultitaskingEnvironment(ArrayList<Task> taskList) {
         this.taskList = taskList;
@@ -24,6 +25,8 @@ public class UnifiedMultitaskingEnvironment {
         intermediatePopulation = new Population();
         optimumIndividual = new Individual();
         optimumFitnessValues = new ArrayList<>();
+        optimumScalarFitness = 0.0;
+        updateUnifiedTaskDimension();
     }
 
     public ArrayList<Task> getTaskList() {
@@ -92,6 +95,14 @@ public class UnifiedMultitaskingEnvironment {
         else optimumFitnessValues.set(index, value);
     }
 
+    public Double getOptimumScalarFitness() {
+        return optimumScalarFitness;
+    }
+
+    public void setOptimumScalarFitness(Double optimumScalarFitness) {
+        this.optimumScalarFitness = optimumScalarFitness;
+    }
+
     public static int getUnifiedTaskDimension() {
         return unifiedTaskDimension;
     }
@@ -104,8 +115,10 @@ public class UnifiedMultitaskingEnvironment {
     }
 
     public void MFEAlgorithm() {
-        boolean done = false;
         Individual aIndividual;
+        int iteration = 0;
+        int counter = 0;
+        boolean done = false;
 
         //First, Initialize Population.
         initializePopulation();
@@ -118,28 +131,73 @@ public class UnifiedMultitaskingEnvironment {
                 If the fitness has not been changed for a long time (eg. five iterations).
             */
 
-            for (Task task : taskList) {
-                //For each iteration, show a trip and its total distance.
+            if(iteration < MAX_ITERATIONS) {
+                for (Task task : taskList) {
+                    //For each iteration, show a trip and its total distance.
 //                    System.out.print("Route " + i + ": ");
 //                    for (int j = 0; j < cityCount; j++) {
 //                        System.out.print(aChromosome.getDataByIndex(j) + ", ");
 //                        if (j == cityCount - 1)
 //                            System.out.print(aChromosome.getDataByIndex(0) + ", ");
 //                    } //A complete trip.
-                Double bestFitnessValue = task.getBestFitnessValue();
+                    Double bestFitnessValue = task.getBestFitnessValue();
 //                    System.out.print("Distance: " + aChromosome.getFitness() + "\n");
-                //The cost must not be grater than the target.
-                if (bestFitnessValue <= task.getTarget()) {
-                    //The target value has been reached.
-                    done = true;
-                } else {
-                    done = false;
-                    break;
+                    //The cost must not be grater than the target.
+                    if (bestFitnessValue <= task.getTarget()) {
+                        //The target value has been reached.
+                        done = true;
+                    } else {
+                        done = false;
+                        break;
+                    }
                 }
+                GAlgorithm(); //Algorithm 2
+                culturalTransmission(); //Algorithm 3
+                ArrayList<Individual> concatPopulation = new ArrayList<>();
+                concatPopulation.addAll(currentPopulation.getIndividuals());
+                concatPopulation.addAll(offspringPopulation.getIndividuals());
+                intermediatePopulation.setIndividuals(new ArrayList<>(concatPopulation));
+                for (Task task : taskList) {
+                    sortByFitness(offspringPopulation, task);
+                }
+                for (Individual individual : intermediatePopulation.getIndividuals()) {
+                    individual.setScalarFitness(1.0 / Collections.min(individual.getFactorialRanks()));
+                }
+                sortByScalarFitness(intermediatePopulation);
+                for (int i = 0; i < BEST_INDIVIDUAL_BOUND; i++) {
+                    currentPopulation.setIndividuals(i, intermediatePopulation.getIndividuals(i));
+                }
+                for (int i = BEST_INDIVIDUAL_BOUND; i < INDIVIDUAL_COUNT; i++) {
+                    int rand = new Random().nextInt(INDIVIDUAL_COUNT - BEST_INDIVIDUAL_BOUND) + BEST_INDIVIDUAL_BOUND;
+                    currentPopulation.setIndividuals(i, intermediatePopulation.getIndividuals(rand));
+                }
+                counter++;
+                if(currentPopulation.getIndividuals(0).getScalarFitness() < optimumScalarFitness) {
+                    optimumIndividual = currentPopulation.getIndividuals(0);
+                    optimumFitnessValues = new ArrayList<>(optimumIndividual.getFactorialCosts());
+                    optimumScalarFitness = optimumIndividual.getScalarFitness();
+                    counter = 0;
+                }
+                //The best fitness value is not changed for a long time.
+                if(counter == MAX_LAPSE) {
+                    done = true;
+                }
+
+                //Step #
+                // System.out.println("Step: " + iteration + ", Record: " + bestFitness);
+                iteration++;
             }
-            GAlgorithm(); //Algorithm 2
-            culturalTransmission(); //Algorithm 3
+            else {
+                //The maximum number of iterations has been reached.
+                done = true;
+            }
         }
+    }
+
+    private void sortByScalarFitness(Population population) {
+        mergeSort(0,
+                population.getIndividuals().size() - 1,
+                population.getIndividuals());
     }
 
     private void GAlgorithm() {
@@ -191,6 +249,10 @@ public class UnifiedMultitaskingEnvironment {
         mutantChild.setChromosome(firstCity,
                 mutantChild.getChromosome(secondCity));
         mutantChild.setChromosome(secondCity, temp);
+        mutantChild.setParentNumber(1);
+        mutantChild.setParentASkillFactor(parent.getSkillFactor());
+        mutantChild.setParentBSkillFactor(parent.getSkillFactor());
+        mutantChild.setSkillFactor(parent.getSkillFactor());
         return mutantChild;
     }
 
@@ -221,8 +283,14 @@ public class UnifiedMultitaskingEnvironment {
         cross(firstCutIndex, secondCutIndex, childBChromosome, parentA, parentB);
         returnCrossChildren[0] = new Individual();
         returnCrossChildren[0].setChromosome(new ArrayList<>(Arrays.asList(childAChromosome)));
+        returnCrossChildren[0].setParentNumber(2);
+        returnCrossChildren[0].setParentASkillFactor(parentA.getSkillFactor());
+        returnCrossChildren[0].setParentBSkillFactor(parentB.getSkillFactor());
         returnCrossChildren[1] = new Individual();
         returnCrossChildren[1].setChromosome(new ArrayList<>(Arrays.asList(childBChromosome)));
+        returnCrossChildren[1].setParentNumber(2);
+        returnCrossChildren[1].setParentASkillFactor(parentB.getSkillFactor());
+        returnCrossChildren[1].setParentBSkillFactor(parentA.getSkillFactor());
         return returnCrossChildren;
     }
 
@@ -231,7 +299,7 @@ public class UnifiedMultitaskingEnvironment {
         for (int i = firstCutIndex; i <= secondCutIndex; i++) {
             boolean alreadyThere = false;
             for (int j = firstCutIndex; j <= secondCutIndex; j++) {
-                if (childChromosome[j] == notAlikeParent.getChromosome(j)) {
+                if (childChromosome[j] == notAlikeParent.getChromosome(i)) {
                     alreadyThere = true;
                     break;
                 }
@@ -305,8 +373,8 @@ public class UnifiedMultitaskingEnvironment {
     private ArrayList<Individual> selectParent() {
         //Apply Roulette selection.
         ArrayList<Individual> parents = new ArrayList<>();
-        double fitnessSum = 0;
-        double individualFitness = 0;
+        double fitnessSum = 0.0;
+        double individualFitness = 0.0;
         //Calculate fitness sum.
         for (int i = 0; i < INDIVIDUAL_COUNT; i++) {
             for (Task task : taskList) {
@@ -327,11 +395,32 @@ public class UnifiedMultitaskingEnvironment {
             }
             individualFitness = 0;
         }
+        if (parents.size() % 2 != 0) {
+            parents.remove(parents.size()-1);
+        }
         return parents;
     }
 
     private void culturalTransmission() {
+        ArrayList<Individual> offspring = new ArrayList<>(offspringPopulation.getIndividuals());
 
+        for (Individual child : offspring) {
+            for (Task task : taskList) {
+                child.setFactorialCosts(task.getTaskId(), Double.MAX_VALUE);
+            }
+            int parentNumber = child.getParentNumber();
+            if(parentNumber == 2) {
+                double rand = new Random().nextDouble();
+                if(rand < FACTOR_PROBABILITY) {
+                    child.setSkillFactor(child.getParentASkillFactor());
+                }
+                else {
+                    child.setSkillFactor(child.getParentBSkillFactor());
+                }
+            }
+            Task evaluatedTask = taskList.get(child.getSkillFactor());
+            calculateFitnessValue(child, evaluatedTask);
+        }
     }
 
     private void initializePopulation() {
@@ -369,8 +458,12 @@ public class UnifiedMultitaskingEnvironment {
                 population.getIndividuals().size() - 1,
                 population.getIndividuals(),
                 task);
-        for (int i = 0; i < INDIVIDUAL_COUNT; i++) {
-            population.getIndividuals(i).setFactorialRanks(task.getTaskId(), i);
+        for (int i = 0; i < population.getIndividuals().size(); i++) {
+            population.getIndividuals(i).setFactorialRanks(task.getTaskId(), i + 1);
+        }
+        if(population.getIndividuals(0).getFactorialCosts(task.getTaskId()) < task.getBestFitnessValue()) {
+            task.setBestIndividual(population.getIndividuals(0));
+            task.setBestFitnessValue(task.getBestIndividual().getFactorialCosts(task.getTaskId()));
         }
     }
 
@@ -405,5 +498,28 @@ public class UnifiedMultitaskingEnvironment {
         currentPopulation.getIndividuals().get(index).setChromosome(firstCity,
                 currentPopulation.getIndividuals().get(index).getChromosome(secondCity));
         currentPopulation.getIndividuals().get(index).setChromosome(secondCity, temp);
+    }
+
+    public void printBestSolution(Task task)
+    {
+        int taskId = task.getTaskId();
+        Individual bestIndividual = task.getBestIndividual();
+        Double bestFitness = task.getBestFitnessValue();
+
+        if(bestFitness <= task.getTarget()){
+            //Print it.
+            System.out.println("Target reached.");
+        }else{
+            System.out.println("Target not reached");
+        }
+        System.out.print("Shortest Route: ");
+        ArrayList<Integer> taskChromosome = bestIndividual.decoding(task);
+        for(int j = 0; j < task.getDimension(); j++)
+        {
+            System.out.print(taskChromosome.get(j) + ", ");
+            if(j == task.getDimension() - 1)
+                System.out.print(taskChromosome.get(0) + ", ");
+        }
+        System.out.print("Distance: " + bestFitness + "\n");
     }
 }

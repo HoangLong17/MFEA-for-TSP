@@ -4,18 +4,47 @@ package com.ngm.mfea;
 import java.util.ArrayList;
 
 public class Individual implements Comparable<Individual> {
-    protected ArrayList<Integer> chromosome; //Chromosome's data.
-    protected ArrayList<Double> factorialCosts;
-    protected ArrayList<Integer> factorialRanks;
-    protected int skillFactor;
-    protected Double scalarFitness;
+    private ArrayList<Integer> chromosome; //Chromosome's data.
+    private ArrayList<Double> factorialCosts;
+    private ArrayList<Integer> factorialRanks;
+    private int skillFactor;
+    private int parentASkillFactor;
+    private int parentBSkillFactor;
+    private Double scalarFitness;
+    private int parentNumber = 0;
 
     public Individual() {
         chromosome = new ArrayList<>();
         factorialCosts = new ArrayList<>();
         factorialRanks = new ArrayList<>();
         skillFactor = 0;
+        parentASkillFactor = 0;
+        parentBSkillFactor = 0;
         scalarFitness = 0.0;
+    }
+
+    public int getParentASkillFactor() {
+        return parentASkillFactor;
+    }
+
+    public void setParentASkillFactor(int parentASkillFactor) {
+        this.parentASkillFactor = parentASkillFactor;
+    }
+
+    public int getParentBSkillFactor() {
+        return parentBSkillFactor;
+    }
+
+    public void setParentBSkillFactor(int parentBSkillFactor) {
+        this.parentBSkillFactor = parentBSkillFactor;
+    }
+
+    public int getParentNumber() {
+        return parentNumber;
+    }
+
+    public void setParentNumber(int parentNumber) {
+        this.parentNumber = parentNumber;
     }
 
     public ArrayList<Integer> getChromosome() {
@@ -92,8 +121,9 @@ public class Individual implements Comparable<Individual> {
     }
 
     public int compareTo(Individual that, int taskId) {
-        return Double.compare(this.getFactorialCosts().get(taskId),
-                that.getFactorialCosts().get(taskId));
+        return Double.compare(this.getFactorialCosts(taskId),
+                that.getFactorialCosts(taskId));
+        //this < that ? -1 : this > that ? 1 : 0.
     }
 
     public ArrayList<Integer> encoding() {
@@ -108,11 +138,10 @@ public class Individual implements Comparable<Individual> {
     public ArrayList<Integer> decoding(Task task) {
         ArrayList<Integer> returnChromosome = new ArrayList<>(chromosome);
         int taskDimension = task.getDimension();
-        int size = returnChromosome.size();
         int i = 0;
         while (returnChromosome.size() > taskDimension) {
-            if (returnChromosome.get(i) == 0) returnChromosome.remove(i);
-            i++;
+            if (returnChromosome.get(i) >= taskDimension) returnChromosome.remove(i);
+            else i++;
         }
         return returnChromosome;
     }

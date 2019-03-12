@@ -27,7 +27,6 @@ public class Task {
 
     public Task(String filename, Double target) {
         this.target = target;
-        taskCount++;
         taskId = taskCount;
         bestIndividual  = new Individual();
         bestFitnessValue = Double.MAX_VALUE;
@@ -35,6 +34,7 @@ public class Task {
         aX = new ArrayList<>();
         aY = new ArrayList<>();
         initializeMap(filename);
+        taskCount++;
     }
 
     public static int getDOMAIN() {
