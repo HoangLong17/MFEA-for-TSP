@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Random;
 
 import static com.ngm.mfea.Population.*;
-import static com.ngm.utils.Sorting.*;
+import static com.ngm.utils.Sorting.mergeSort;
 
 public class UnifiedMultitaskingEnvironment {
     private static int unifiedTaskDimension = 0;
@@ -198,6 +198,7 @@ public class UnifiedMultitaskingEnvironment {
         mergeSort(0,
                 population.getIndividuals().size() - 1,
                 population.getIndividuals());
+        Collections.reverse(population.getIndividuals());
     }
 
     private void GAlgorithm() {
@@ -500,7 +501,7 @@ public class UnifiedMultitaskingEnvironment {
         currentPopulation.getIndividuals().get(index).setChromosome(secondCity, temp);
     }
 
-    public void printBestSolution(Task task)
+    public double printBestSolution(Task task)
     {
         int taskId = task.getTaskId();
         Individual bestIndividual = task.getBestIndividual();
@@ -521,5 +522,7 @@ public class UnifiedMultitaskingEnvironment {
                 System.out.print(taskChromosome.get(0) + ", ");
         }
         System.out.print("Distance: " + bestFitness + "\n");
+
+        return bestFitness;
     }
 }

@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 public class Population {
     private ArrayList<Individual> individuals;
-    static final int BEST_INDIVIDUAL_BOUND = 75;
-    static final int INDIVIDUAL_COUNT = 100;
-    static final double SELECTION_PROBABILITY = 0.25;
-    static final double RMP = 0.03;
+    static final int BEST_INDIVIDUAL_BOUND = 150;
+    static final int INDIVIDUAL_COUNT = 200;
+    static final double SELECTION_PROBABILITY = 0.75;
+    static final double RMP = 0.05;
     static final double FACTOR_PROBABILITY = 0.5;
-    static final long MAX_ITERATIONS = 100000;
-    static final long MAX_LAPSE = 1000;
+    static final long MAX_ITERATIONS = 10000;
+    static final long MAX_LAPSE = 100;
 
     public Population() {
         individuals = new ArrayList<>();
