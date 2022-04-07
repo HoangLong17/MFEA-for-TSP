@@ -45,8 +45,8 @@ public class TSPFile {
                 //Get point coordinate.
                 for (int i = 0; i < cp.getDimension(); i++) {
                     sc.nextInt();
-                    cp.setaX(i, sc.nextDouble());
-                    cp.setaY(i, sc.nextDouble());
+                    cp.setaX(i, Double.parseDouble(sc.next()));
+                    cp.setaY(i, Double.parseDouble(sc.next()));
                 }
             }
             //else..
